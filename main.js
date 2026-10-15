@@ -75,6 +75,7 @@
   });
   const deck = $$('.card', stage);
   const tints = deck.map((c) => $('.card__tint', c));
+  const tilts = deck.map((c) => parseFloat(c.dataset.tilt) || 0); // each card keeps its own slight lean
   const n = deck.length;
 
   let pos = 0;
@@ -93,7 +94,7 @@
       const bright = Math.max(0.15, 1 - back * DC.falloff);
       const blurPx = Math.min(DC.blur, (back / DC.visible) * DC.blur);
       const el = deck[i];
-      el.style.transform = `translate(-50%, -50%) translateX(${tx.toFixed(2)}px) translateZ(${tz.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg)`;
+      el.style.transform = `translate(-50%, -50%) translateX(${tx.toFixed(2)}px) translateZ(${tz.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg) rotate(${tilts[i]}deg)`;
       el.style.opacity = opacity.toFixed(3);
       el.style.filter = blurPx > 0.05 ? `brightness(${bright.toFixed(3)}) blur(${blurPx.toFixed(2)}px)` : `brightness(${bright.toFixed(3)})`;
       el.style.zIndex = String(Math.round(2000 - d * 20));
