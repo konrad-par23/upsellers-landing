@@ -25,6 +25,9 @@
   --radius-section: 28px;
   --gutter: 16px;
   --pad: 48px;
+  /* Content grid: on wide screens everything sits in a centred 1440px column;
+     section backgrounds still run full width. --side is that column's inset. */
+  --content: 1440px;
 
   /* chapter nav: sits at the bottom of the hero, then sticks 16px from the top.
      --dock-offset (distance from the sticky line to that spot) is measured in main.js;
@@ -276,8 +279,10 @@ ol, ul { list-style: none; }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 860px;
-  padding: var(--hero-pt) var(--pad) 40px;
+  --side: max(var(--pad), calc((100% - var(--content)) / 2));
+  min-height: max(760px, calc(100vh - 2 * var(--gutter)));
+  min-height: max(760px, calc(100svh - 2 * var(--gutter)));
+  padding: var(--hero-pt) var(--side) 40px;
   border-radius: var(--radius-section);
   overflow: clip;
   color: var(--paper);
@@ -299,9 +304,9 @@ ol, ul { list-style: none; }
   will-change: transform;
 }
 .mark svg { width: 100%; height: 100%; }
-.mark--lg { width: 760px; height: 570px; opacity: 0.9; rotate: -24deg; translate: 250px -56px; transform-origin: 0 0; }
+.mark--lg { left: 17.8%; top: -6.5%; width: 760px; height: 570px; opacity: 0.9; rotate: -24deg; transform-origin: 0 0; }
 .mark--lg svg { filter: blur(104px); }
-.mark--sm { width: 741px; height: 556px; rotate: -24deg; translate: 718px 545px; transform-origin: 0 0; }
+.mark--sm { left: 51%; top: 63.4%; width: 741px; height: 556px; rotate: -24deg; transform-origin: 0 0; }
 .mark--sm svg { filter: blur(148px); }
 /* Slow, aimless drift — same off-beat recipe as the footer aurora, but gentler:
    longer cycles (31–53s), smaller travel, almost no warp */
@@ -405,8 +410,8 @@ ol, ul { list-style: none; }
 /* Merchant stack */
 .stack-wrap {
   position: absolute;
-  right: 56px;
-  top: 151px; /* front card centred on the same line as the hero copy */
+  right: calc(var(--side) + 8px);
+  top: calc(50% - 279px); /* front card centred on the same line as the hero copy */
   z-index: 1;
   width: 420px;
   height: 540px;
@@ -513,8 +518,9 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  --side: max(var(--pad), calc((100% - var(--content)) / 2));
   min-height: 820px;
-  padding: var(--pad);
+  padding: var(--pad) var(--side);
   border-radius: var(--radius-section);
   overflow: clip;
   background-color: var(--lime-wash);
@@ -629,7 +635,7 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
 /* Bars */
 .bars {
   position: absolute;
-  right: var(--pad);
+  right: var(--side);
   bottom: 0;
   z-index: 1;
   display: flex;
@@ -804,7 +810,8 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
   display: flex;
   flex-direction: column;
   gap: 72px;
-  padding: 112px var(--pad) 96px;
+  --side: max(var(--pad), calc((100% - var(--content)) / 2));
+  padding: 112px var(--side) 96px;
   background: var(--white);
 }
 
@@ -1099,8 +1106,9 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  --side: max(var(--pad), calc((100% - var(--content)) / 2));
   min-height: 860px;
-  padding: 48px var(--pad) 36px;
+  padding: 48px var(--side) 36px;
   border-radius: var(--radius-section);
   overflow: clip;
   color: var(--paper);
@@ -1264,7 +1272,7 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
    Responsive
    -------------------------------------------------------------------------- */
 @media (max-width: 1320px) {
-  .stack-wrap { transform: scale(0.84); transform-origin: 100% 0; }
+  .stack-wrap { transform: scale(0.84); transform-origin: 100% 50%; }
   .hero__title { font-size: clamp(64px, 7vw, 100px); line-height: 0.98; }
   .bars { width: min(700px, 52vw); }
 }
@@ -1326,8 +1334,8 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
   .hero__title { font-size: clamp(44px, 12.4vw, 64px); line-height: 0.98; }
   .hero__sub { width: auto; max-width: 30em; flex-shrink: 1; font-size: 16px; line-height: 24px; }
   .hero__bottom { flex-direction: column-reverse; align-items: flex-start; }
-  .mark--lg { translate: -80px 40px; }
-  .mark--sm { translate: 40px 620px; }
+  .mark--lg { left: -80px; top: 40px; }
+  .mark--sm { left: 40px; top: 620px; }
 
   .gain__per { font-size: 26px; line-height: 30px; }
   .gain__amount { font-size: clamp(52px, 15vw, 80px); }
