@@ -426,7 +426,8 @@ ol, ul { list-style: none; }
   z-index: 0;
   perspective: 1400px;
   perspective-origin: 50% 50%;
-  /* Desktop: cards 22% larger than the Paper frame; the back ones bleed off the hero edge */
+  /* Desktop: cards ≥22% larger than the Paper frame; on big screens main.js raises
+     --deck-scale with the hero height */
   scale: var(--deck-scale, 1.22);
   transform-origin: calc(50% - 36px) 50%;
 }
@@ -490,8 +491,11 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
 
 .toast {
   position: absolute;
-  left: -95px;
-  top: 356px;
+  /* hugs the scaled front card's left edge, ~65% down; grows a little with the deck */
+  left: calc(110px - 168px * var(--deck-scale, 1.22));
+  top: calc(270px + 69.6px * var(--deck-scale, 1.22));
+  scale: var(--toast-scale, 1);
+  transform-origin: 100% 50%;
   z-index: 5;
   display: flex;
   align-items: center;
@@ -617,22 +621,112 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
 }
 .footnote__link:hover { text-decoration-thickness: 2px; }
 
+/* The math — a dark panel that unfolds under the footnote. Rows step in one by one,
+   each with a bar showing how far that layer has climbed towards the total. */
+.footnote__link { display: inline-flex; align-items: center; gap: 4px; }
+.footnote__link svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: rotate 420ms var(--spring); }
+.footnote__link[aria-expanded="true"] svg { rotate: 180deg; }
+
 .math {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -20px; /* cancels the column gap while closed */
+  transition: grid-template-rows 560ms var(--ease-out), margin-top 560ms var(--ease-out);
+}
+.math.is-open { grid-template-rows: 1fr; margin-top: 0; }
+.math__clip { min-height: 0; overflow: hidden; }
+.math__panel {
+  position: relative;
+  padding: 18px 20px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(236, 255, 182, 0.12);
+  background-color: var(--ink);
+  background-image: radial-gradient(circle farthest-corner at 100% 0% in oklab, oklab(91.5% -0.103 0.188 / 16%) 0%, oklab(91.5% -0.103 0.188 / 0%) 55%);
+  box-shadow: 0 24px 48px -28px rgba(12, 33, 22, 0.55);
+  color: var(--paper);
+  opacity: 0;
+  translate: 0 -10px;
+  scale: 0.98;
+  transform-origin: 50% 0;
+  transition: opacity 220ms ease, translate 520ms var(--ease-out), scale 520ms var(--ease-out);
+}
+.math.is-open .math__panel { opacity: 1; translate: 0 0; scale: 1; }
+
+.math__head,
+.math__rows li,
+.math__total,
+.math__note {
+  opacity: 0;
+  translate: 0 8px;
+  transition: opacity 160ms ease, translate 200ms ease;
+}
+.math.is-open :is(.math__head, .math__rows li, .math__total, .math__note) {
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity 380ms ease calc(var(--r, 0) * 70ms + 140ms), translate 520ms var(--ease-out) calc(var(--r, 0) * 70ms + 140ms);
+}
+
+.math__head {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(12, 33, 22, 0.1);
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.08em;
+  color: var(--fog);
+}
+.math__rows { display: flex; flex-direction: column; gap: 8px; }
+.math__rows li {
+  display: grid;
+  grid-template-columns: 52px 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
   font-family: var(--font-mono);
   font-size: 13px;
   line-height: 18px;
-  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-.math[hidden] { display: none; }
-.math__note { font-family: var(--font-body); font-size: 13px; color: var(--moss); }
+.math__op { font-weight: 600; color: var(--chartreuse); }
+.math__name { font-family: var(--font-body); color: var(--mist); }
+.math__bar { height: 4px; border-radius: 4px; background: rgba(236, 255, 182, 0.08); overflow: hidden; }
+.math__bar i {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(214, 245, 0, 0.35), var(--chartreuse));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 200ms ease;
+}
+.math.is-open .math__bar i { transform: scaleX(1); transition: transform 700ms var(--ease-out) calc(var(--r, 0) * 70ms + 260ms); }
+.math__val { text-align: right; color: var(--paper); }
+
+.math__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(236, 255, 182, 0.18);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mist);
+}
+.math__total strong {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-variation-settings: "wdth" 125;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 26px;
+  letter-spacing: -0.02em;
+  color: var(--chartreuse);
+  font-variant-numeric: tabular-nums;
+}
+.math__note { margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--fog); }
 
 /* Bars */
 .bars {
@@ -642,15 +736,15 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
   z-index: 1;
   display: flex;
   align-items: flex-end;
-  --bars-h: 600px;
+  --bars-h: calc(600px * var(--chart-scale, 1));
   --bars-gap: 8px;
   gap: var(--bars-gap);
-  width: 700px;
+  width: calc(700px * var(--chart-scale, 1));
   height: var(--bars-h);
 }
 .bar {
   position: relative;
-  --bar-h: var(--h);
+  --bar-h: calc(var(--h) * var(--chart-scale, 1));
   flex: 1 1 0;
   min-width: 0; /* equal widths even when a label is long */
   height: calc(var(--bar-h) + var(--grow, 0px));
@@ -1355,6 +1449,8 @@ html:not(.js) .card:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) 
   .total svg { margin-right: calc(50% - 6px); }
   .total__pill { padding: 6px 10px; gap: 6px; }
   .slider__value { font-size: 22px; }
+  .math__panel { padding: 16px; }
+  .math__rows li { grid-template-columns: 44px 64px minmax(0, 1fr) auto; gap: 8px; font-size: 12px; }
 
   .setup { padding: 72px var(--pad) 56px; gap: 40px; }
   .steps { --rail-x: 16px; }

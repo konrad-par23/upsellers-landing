@@ -261,7 +261,8 @@
   const salesOut = $('[data-sales]');
   const amountEl = $('[data-amount]');
   const barEls = $$('[data-bar]');
-  const mathEl = $('[data-math]');
+  const mathSteps = $$('[data-math-step]');
+  const mathGain = $('[data-math-gain]');
   const mathBox = $('#math');
   const mathBtn = $('.footnote__link');
 
@@ -297,7 +298,8 @@
     salesOut.textContent = usd(sales);
     slider.setAttribute('aria-valuetext', `${usd(sales)} a month`);
     barEls.forEach((el, i) => { el.textContent = short(steps[i]); });
-    mathEl.textContent = `${usd(sales)} × ${LAYERS.join(' × ')} = ${usd(total)}`;
+    mathSteps.forEach((el, i) => { el.textContent = usd(steps[i]); });
+    mathGain.textContent = '+' + usd(total - sales);
     if (!skipAmount) amountEl.textContent = '+' + usd(currentGain);
   }
 
@@ -314,9 +316,10 @@
   render(valueAt(slider.value / slider.max), { skipAmount: true });
 
   mathBtn.addEventListener('click', () => {
-    const open = mathBtn.getAttribute('aria-expanded') === 'true';
-    mathBtn.setAttribute('aria-expanded', String(!open));
-    mathBox.hidden = open;
+    const open = !mathBox.classList.contains('is-open');
+    mathBtn.setAttribute('aria-expanded', String(open));
+    mathBox.classList.toggle('is-open', open);
+    mathBox.inert = !open;
   });
 
   function countUp(el, to, duration = 1300) {
@@ -544,6 +547,49 @@
   new IntersectionObserver(([e]) => golive.classList.toggle('is-visible', e.isIntersecting)).observe(golive);
 
   /* ------------------------------------------------------------------
+     Big screens — grow the hero cards and the chart with the viewport
+     ------------------------------------------------------------------ */
+  const heroTitle = $('.hero__title');
+  const gainSection = $('.gain');
+  const barsBox = $('.bars');
+
+  function fitLarge() {
+    // Hero deck: only in the side-by-side layout above 1320px
+    const wideHero = getComputedStyle(stackWrap).position === 'absolute' && window.innerWidth > 1320;
+    if (wideHero) {
+      const H = hero.clientHeight;
+      const range = document.createRange();
+      range.selectNodeContents(heroTitle);
+      const headlineRight = Math.max(...[...heroTitle.children].map((line) => {
+        range.selectNodeContents(line);
+        return range.getBoundingClientRect().right;
+      }));
+      const cx = stackWrap.getBoundingClientRect().left + 174; // front card centre
+      const byHeight = (0.63 * H) / 446;                        // card ≈ 63% of the hero
+      const byGap = (cx - headlineRight - 48) / 168;            // keep clear of the headline
+      const byFit = (H - 218) / 446;                            // between nav row and pill
+      const s = clamp(Math.min(byHeight, byGap, byFit), 1.22, 1.9);
+      stack.style.setProperty('--deck-scale', s.toFixed(3));
+      stack.style.setProperty('--toast-scale', (1 + (s - 1.22) * 0.6).toFixed(3));
+    } else {
+      stack.style.removeProperty('--deck-scale');
+      stack.style.removeProperty('--toast-scale');
+    }
+
+    // Chart: bars grow into the extra height, but never under the slider column
+    if (getComputedStyle(barsBox).position === 'absolute') {
+      const cs = getComputedStyle(gainSection);
+      const contentW = gainSection.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      // tallest bar (500) + TOTAL tag must stay clear of the amount block at the top
+      const byHeight = (gainSection.clientHeight - 360) / 500;
+      const byWidth = (contentW - 504) / 700;
+      gainSection.style.setProperty('--chart-scale', clamp(Math.min(byHeight, byWidth), 1, 1.5).toFixed(3));
+    } else {
+      gainSection.style.removeProperty('--chart-scale');
+    }
+  }
+
+  /* ------------------------------------------------------------------
      Scroll / resize loop
      ------------------------------------------------------------------ */
   let ticking = false;
@@ -558,6 +604,7 @@
   }
 
   function onResize() {
+    fitLarge();
     layoutDock();
     layoutRail();
     placeGlider();
@@ -573,5 +620,6 @@
   });
   document.fonts?.ready.then(onResize);
 
+  fitLarge();
   onScroll();
 })();

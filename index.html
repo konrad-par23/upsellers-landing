@@ -129,12 +129,25 @@
         </div>
         <div class="footnote">
           <span>A scenario, not a promise.</span>
-          <button class="footnote__link" type="button" aria-expanded="false" aria-controls="math">See the math</button>
+          <button class="footnote__link" type="button" aria-expanded="false" aria-controls="math">See the math<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5"/></svg></button>
         </div>
-        <p class="math" id="math" hidden>
-          <span data-math>$100,000 × 1.09 × 1.03 × 1.05 × 1.03 = $121,420</span>
-          <span class="math__note">Each layer compounds on the one before it.</span>
-        </p>
+        <!-- The math: dark panel that unfolds; each layer's step comes in one after another -->
+        <div class="math" id="math" role="region" aria-label="How the number is calculated" inert>
+          <div class="math__clip">
+            <div class="math__panel">
+              <p class="math__head"><span>THE MATH</span><span>PER MONTH</span></p>
+              <ol class="math__rows">
+                <li style="--r: 0; --w: 82.4%"><span class="math__op"></span><span class="math__name">Today</span><span class="math__bar"><i></i></span><span class="math__val" data-math-step="0">$100,000</span></li>
+                <li style="--r: 1; --w: 89.8%"><span class="math__op">× 1.09</span><span class="math__name">Upsells</span><span class="math__bar"><i></i></span><span class="math__val" data-math-step="1">$109,000</span></li>
+                <li style="--r: 2; --w: 92.5%"><span class="math__op">× 1.03</span><span class="math__name">Recovery</span><span class="math__bar"><i></i></span><span class="math__val" data-math-step="2">$112,270</span></li>
+                <li style="--r: 3; --w: 97.1%"><span class="math__op">× 1.05</span><span class="math__name">BNPL</span><span class="math__bar"><i></i></span><span class="math__val" data-math-step="3">$117,884</span></li>
+                <li style="--r: 4; --w: 100%"><span class="math__op">× 1.03</span><span class="math__name">Retarget</span><span class="math__bar"><i></i></span><span class="math__val" data-math-step="4">$121,420</span></li>
+              </ol>
+              <p class="math__total" style="--r: 5"><span>Extra a month</span><strong data-math-gain>+$21,420</strong></p>
+              <p class="math__note" style="--r: 6">Each layer compounds on the one before it.</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="bars" role="list" aria-label="Monthly sales by revenue layer">
